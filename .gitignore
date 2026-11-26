@@ -1,0 +1,8 @@
+# Documentos confidenciales del convenio (precios, datos del cliente). NUNCA subir.
+privado/
+
+# Sistema / editores
+.DS_Store
+Thumbs.db
+.vscode/
+node_modules/

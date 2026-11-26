@@ -1,0 +1,15 @@
+# Despliegue en Netlify: sitio estático, sin proceso de build.
+[build]
+  publish = "."
+
+# El Service Worker nunca debe quedarse en la caché HTTP:
+# así el navegador detecta cada versión nueva de sw.js.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Content-Type = "application/manifest+json"
