@@ -59,7 +59,7 @@
   --primario-hover: var(--p-400);
   --primario-texto: var(--p-400);
   --primario-suave: rgb(16 185 129 / .1);
-  --sombra: none;
+  --sombra: 0 0 #0000; /* sombra "vacía" válida: "none" invalidaría las listas de box-shadow */
   color-scheme: dark;
 }
 
@@ -97,7 +97,7 @@ svg { flex: none; }
 
 .barra {
   grid-area: barra;
-  position: sticky; top: 0; z-index: 20;
+  position: sticky; top: 0; z-index: 30; /* encima del menú lateral */
   display: flex; align-items: center; justify-content: space-between; gap: .75rem;
   padding: 0 max(1rem, env(safe-area-inset-right)) 0 max(1rem, env(safe-area-inset-left));
   background: var(--superficie);
@@ -159,7 +159,11 @@ main {
   }
   .navegacion {
     grid-area: nav;
-    position: sticky; top: var(--alto-barra); inset: auto;
+    /* Primero se anula el "inset" del menú inferior y DESPUÉS se fija "top";
+       si "inset" va al final, borra el "top" y el sticky deja de funcionar. */
+    inset: auto;
+    position: sticky; top: var(--alto-barra);
+    align-self: start;
     height: calc(100vh - var(--alto-barra));
     display: flex; flex-direction: column; gap: .25rem;
     padding: 1.5rem 1rem;
@@ -266,8 +270,10 @@ a.chip:hover { text-decoration: none; filter: brightness(.97); }
 .seccion-pie { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .75rem; padding: 1rem 1.5rem; border-top: 1px solid var(--separador); }
 .panel h2 { margin-bottom: .75rem; }
 .panel.alerta, .seccion.alerta { box-shadow: 0 0 0 1px rgb(220 38 38 / .3); }
-.rejilla-paneles { display: grid; gap: 1.5rem; align-items: start; }
-@media (min-width: 900px) { .rejilla-paneles { grid-template-columns: 1fr 1fr; } }
+/* Dos columnas tipo "masonry": cada sección ocupa solo su alto, sin huecos */
+.rejilla-paneles > * { break-inside: avoid; margin: 0 0 1.5rem; }
+.rejilla-paneles > .seccion + .seccion { margin-top: 0; }
+@media (min-width: 900px) { .rejilla-paneles { columns: 2; column-gap: 1.5rem; } }
 
 /* ---------------- Stats widgets (Filament Stats Overview) ---------------- */
 
