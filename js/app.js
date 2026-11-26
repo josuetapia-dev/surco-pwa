@@ -11,6 +11,7 @@ import { vistaMapa } from './vistas/mapa.js';
 import { vistaActividades, vistaNuevaActividad } from './vistas/actividades.js';
 import { vistaPendientes, resumenPendientes, avisarPendientes } from './vistas/pendientes.js';
 import { vistaAjustes } from './vistas/ajustes.js';
+import { pintarTema, cambiarTema } from './tema.js';
 
 const RUTAS = {
   mapa: vistaMapa,
@@ -164,9 +165,18 @@ async function avisoDiario(r) {
 
 window.addEventListener('datos-cambiaron', actualizarContador);
 
+// ---------------- Tema claro / oscuro ----------------
+
+document.getElementById('btn-tema').addEventListener('click', async () => {
+  const oscuroAhora = document.documentElement.hasAttribute('data-oscuro');
+  await cambiarTema(oscuroAhora ? 'claro' : 'oscuro');
+  window.dispatchEvent(new Event('tema-cambiado'));
+});
+
 // ---------------- Arranque ----------------
 
 async function iniciar() {
+  pintarTema();
   registrarServiceWorker();
   actualizarEstadoRed();
   try {

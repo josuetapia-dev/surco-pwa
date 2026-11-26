@@ -21,6 +21,19 @@ export const TIPOS_ACTIVIDAD = [
   'Resiembra',
 ];
 
+/** Color de badge (estilo Filament) para cada tipo de actividad. */
+const COLOR_TIPO = {
+  Poda: 'b-info',
+  Fertilización: 'b-success',
+  Desmamonado: 'b-warning',
+  Redondeo: 'b-gray',
+  Composta: 'b-primary',
+  Observación: 'b-violet',
+  'Retiro de planta': 'b-danger',
+  Resiembra: 'b-success',
+};
+export const badgeTipo = (tipo) => `<span class="badge ${COLOR_TIPO[tipo] || 'b-gray'}">${esc(tipo)}</span>`;
+
 /** Escapa texto para insertarlo de forma segura en HTML. */
 export function esc(valor) {
   return String(valor ?? '').replace(/[&<>"']/g, (c) => ({
@@ -49,7 +62,9 @@ export function toast(mensaje, { accion, alAccion, duracion = 3500, tipo = '' } 
   const t = document.createElement('div');
   t.className = `toast ${tipo}`;
   t.setAttribute('role', 'status');
-  t.textContent = mensaje;
+  const texto = document.createElement('span');
+  texto.textContent = mensaje;
+  t.append(texto);
   if (accion) {
     const b = document.createElement('button');
     b.type = 'button';

@@ -1,0 +1,50 @@
+/* =============================================================
+   mapa.css — Vista Mapa: widget de clima, mapa de plantas y ficha
+   ============================================================= */
+
+.clima-valor { display: flex; align-items: baseline; gap: .5rem; }
+.clima-valor small { font-size: .8125rem; font-weight: 500; color: var(--texto-suave); letter-spacing: 0; }
+
+.mapa-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.mapa {
+  display: grid;
+  grid-template-columns: 2.75rem repeat(var(--columnas), minmax(2.25rem, 1fr));
+  gap: 6px;
+  min-width: max-content;
+}
+@media (min-width: 1024px) { .mapa { min-width: 0; } }
+.mapa-col, .mapa-surco, .mapa-esquina { display: grid; place-items: center; font-size: .75rem; font-weight: 500; color: var(--texto-suave); }
+.mapa-surco { border-radius: var(--radio-md); background: var(--superficie-2); box-shadow: inset 0 0 0 1px var(--anillo); color: var(--texto-medio); font-weight: 600; }
+
+.planta {
+  aspect-ratio: 1; min-height: 2.25rem;
+  border: 0; border-radius: 50%;
+  font: 600 .75rem/1 var(--fuente); color: #fff; cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / .1);
+  transition: transform .1s, box-shadow .1s;
+}
+.planta:hover { transform: scale(1.12); box-shadow: 0 0 0 3px var(--superficie), 0 0 0 5px var(--primario); }
+.planta:active { transform: scale(.95); }
+.e-bueno { background: var(--e-bueno); }
+.e-deshidratada { background: var(--e-deshidratada); color: #422006; }
+.e-enferma { background: var(--e-enferma); }
+.e-quitar { background: repeating-linear-gradient(45deg, var(--e-quitar) 0 4px, #8b5cf6 4px 8px); }
+.e-hueco { background: transparent; }
+.planta.e-hueco { box-shadow: inset 0 0 0 2px var(--g-300); color: var(--texto-suave); background-image: none; }
+:root[data-oscuro] .planta.e-hueco { box-shadow: inset 0 0 0 2px var(--g-600); }
+.punto.e-hueco { box-shadow: inset 0 0 0 2px var(--g-400); }
+.punto.e-quitar { background: var(--e-quitar); }
+
+.leyenda { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; padding: 0; margin: 0; list-style: none; font-size: .8125rem; color: var(--texto-medio); }
+.leyenda li { display: inline-flex; align-items: center; gap: .4rem; }
+
+/* Ficha de planta (modal) */
+.estados { border: 0; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.estados legend { font-weight: 500; font-size: .875rem; margin-bottom: .5rem; }
+.opcion-estado { display: flex; align-items: center; gap: .5rem; padding: .625rem .75rem; border-radius: var(--radio-lg); box-shadow: inset 0 0 0 1px var(--anillo-fuerte); cursor: pointer; font-size: .8125rem; font-weight: 500; }
+.opcion-estado:hover { background: var(--superficie-2); }
+.opcion-estado:has(input:checked) { box-shadow: inset 0 0 0 2px var(--primario); background: var(--primario-suave); }
+.historial { list-style: none; padding: 0; margin: .75rem 0 0; display: grid; gap: .5rem; max-height: 230px; overflow: auto; }
+.historial li { display: flex; gap: .75rem; align-items: center; font-size: .8125rem; padding: .625rem .75rem; border-radius: var(--radio-lg); background: var(--superficie-2); box-shadow: inset 0 0 0 1px var(--anillo); }
+.historial img { width: 48px; height: 48px; object-fit: cover; border-radius: var(--radio-md); flex: none; }
+.historial small { color: var(--texto-suave); }
