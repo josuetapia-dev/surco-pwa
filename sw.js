@@ -13,7 +13,7 @@
 // queda "en espera" y la app muestra el botón "Actualizar" (SKIP_WAITING).
 // =============================================================
 
-const VERSION = 'v1.0.0';
+const VERSION = 'v1.1.0'; // v1.1.0: rediseño estilo Filament + modo oscuro
 const CACHE_SHELL = `surco-shell-${VERSION}`;
 const CACHE_RUNTIME = `surco-runtime-${VERSION}`;
 const CACHE_API = 'surco-api'; // los datos dinámicos sobreviven entre versiones
@@ -25,10 +25,15 @@ const APP_SHELL = [
   './index.html',
   './offline.html',
   './manifest.json',
-  './css/app.css',
+  './css/base.css',
+  './css/mapa.css',
+  './css/actividades.css',
+  './css/pendientes-ajustes.css',
   './js/app.js',
   './js/db.js',
   './js/ui.js',
+  './js/iconos.js',
+  './js/tema.js',
   './js/apis.js',
   './js/datos-demo.js',
   './js/vistas/mapa.js',

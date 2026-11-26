@@ -134,6 +134,14 @@ try {
   await ir('#/actividades/nueva?cultivo=limon&surco=3&planta=LIM-S03-P02', 540, 1080, true); await captura('movil-nueva-actividad.png');
   await ir('#/actividades', 1280, 800); await captura('escritorio-actividades.png');
   await ir('#/ajustes', 1280, 800); await captura('escritorio-ajustes.png');
+  await ir('#/pendientes', 1280, 800); await captura('escritorio-pendientes.png');
+
+  // Modo oscuro (E1P-07): se elige desde Ajustes y se guarda en localStorage + IndexedDB
+  await evaluar("import('/js/tema.js').then(m => m.cambiarTema('oscuro'))");
+  await ir('#/mapa', 1280, 800); await captura('escritorio-mapa-oscuro.png');
+  await ir('#/mapa', 540, 1080, true); await captura('movil-mapa-oscuro.png');
+  ok('Modo oscuro aplicado y guardado', await evaluar("document.documentElement.hasAttribute('data-oscuro') && localStorage.getItem('surco-tema') === 'oscuro'"));
+  await evaluar("import('/js/tema.js').then(m => m.cambiarTema('claro'))");
 
   // 4b) Web APIs nativas con permisos CONCEDIDOS (cámara simulada + GPS simulado + notificaciones)
   await cdp('Browser.grantPermissions', { origin: URL_APP.slice(0, -1), permissions: ['videoCapture', 'geolocation', 'notifications'] });

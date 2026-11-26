@@ -45,8 +45,8 @@ function png(ancho, alto, rgba) {
 
 // ---------- Dibujo con suavizado (supermuestreo 4×4) ----------
 const hex = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
-const FONDO = hex('#1f5130');
-const SURCO = hex('#2f7a47');
+const FONDO = hex('#047857'); // primario verde campo (emerald-700)
+const SURCO = hex('#059669');
 const PLANTAS = [
   ['#7ee29a', '#7ee29a', '#f2c94c'],
   ['#7ee29a', '#ef6b6b', '#7ee29a'],
