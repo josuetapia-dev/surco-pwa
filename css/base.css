@@ -92,6 +92,9 @@ svg { flex: none; }
   min-height: 100vh;
   display: grid;
   grid-template-rows: var(--alto-barra) 1fr;
+  /* minmax(0, 1fr): la columna NUNCA crece más que la pantalla. Sin esto, el
+     contenido ancho (mapa, pestañas) estiraba la página en celulares. */
+  grid-template-columns: minmax(0, 1fr);
   grid-template-areas: "barra" "contenido";
 }
 
@@ -108,8 +111,9 @@ svg { flex: none; }
 .marca img { border-radius: 8px; }
 .marca span { display: flex; flex-direction: column; line-height: 1.15; }
 .marca strong { font-size: 1.05rem; font-weight: 700; letter-spacing: -.01em; }
-.marca small { color: var(--texto-suave); font-size: .75rem; white-space: nowrap; }
-.barra-acciones { display: flex; align-items: center; gap: .5rem; }
+.marca span { min-width: 0; }
+.marca small { color: var(--texto-suave); font-size: .75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.barra-acciones { display: flex; align-items: center; gap: .5rem; flex: none; }
 
 .chip-red {
   display: inline-flex; align-items: center; gap: .375rem;
@@ -119,6 +123,13 @@ svg { flex: none; }
 }
 .chip-red::before { content: ""; width: .5rem; height: .5rem; border-radius: 50%; background: currentColor; }
 .chip-red.offline { color: #b45309; background: #fffbeb; box-shadow: inset 0 0 0 1px rgb(217 119 6 / .25); }
+/* Celulares angostos: el indicador de red queda solo como punto de color
+   (va DESPUÉS de .chip-red para que sí lo sobrescriba) */
+@media (max-width: 420px) {
+  .barra { gap: .5rem; }
+  .chip-red { font-size: 0; padding: .375rem; gap: 0; }
+  .marca small { display: none; }
+}
 
 .navegacion {
   position: fixed; inset: auto 0 0 0; z-index: 20;
@@ -147,14 +158,14 @@ svg { flex: none; }
 
 main {
   grid-area: contenido;
-  width: 100%; max-width: 1280px; margin: 0 auto;
+  width: 100%; max-width: 1280px; margin: 0 auto; min-width: 0;
   padding: 1.25rem 1rem calc(var(--alto-nav) + env(safe-area-inset-bottom) + 1.5rem);
   outline: none;
 }
 
 @media (min-width: 1024px) {
   .shell {
-    grid-template-columns: var(--ancho-sidebar) 1fr;
+    grid-template-columns: var(--ancho-sidebar) minmax(0, 1fr);
     grid-template-areas: "barra barra" "nav contenido";
   }
   .navegacion {
@@ -269,6 +280,10 @@ a.chip:hover { text-decoration: none; filter: brightness(.97); }
 .seccion-cuerpo.sin-padding { padding: 0; }
 .seccion-pie { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .75rem; padding: 1rem 1.5rem; border-top: 1px solid var(--separador); }
 .panel h2 { margin-bottom: .75rem; }
+@media (max-width: 420px) {
+  .seccion-cabecera, .seccion-cuerpo, .seccion-pie { padding-left: 1rem; padding-right: 1rem; }
+  .seccion-cuerpo.sin-padding { padding: 0; }
+}
 .panel.alerta, .seccion.alerta { box-shadow: 0 0 0 1px rgb(220 38 38 / .3); }
 /* Dos columnas tipo "masonry": cada sección ocupa solo su alto, sin huecos */
 .rejilla-paneles > * { break-inside: avoid; margin: 0 0 1.5rem; }

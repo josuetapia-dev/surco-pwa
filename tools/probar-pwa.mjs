@@ -136,6 +136,18 @@ try {
   await ir('#/ajustes', 1280, 800); await captura('escritorio-ajustes.png');
   await ir('#/pendientes', 1280, 800); await captura('escritorio-pendientes.png');
 
+  // Responsivo: ninguna vista debe ser más ancha que la pantalla (sin scroll horizontal de página)
+  const desbordes = [];
+  for (const ancho of [320, 375, 768]) {
+    for (const ruta of ['#/mapa', '#/actividades', '#/actividades/nueva', '#/pendientes', '#/ajustes']) {
+      await ir(ruta, ancho, 800, ancho < 768);
+      const pagina = await evaluar('document.documentElement.scrollWidth');
+      if (pagina > ancho) desbordes.push(`${ruta} a ${ancho}px mide ${pagina}px`);
+    }
+  }
+  ok('Responsivo: sin desborde horizontal a 320, 375 y 768 px (5 vistas)', desbordes.length === 0, desbordes.join(' | ') || '15 combinaciones revisadas');
+  await ir('#/mapa', 375, 812, true); await captura('movil-375-mapa.png');
+
   // Modo oscuro (E1P-07): se elige desde Ajustes y se guarda en localStorage + IndexedDB
   await evaluar("import('/js/tema.js').then(m => m.cambiarTema('oscuro'))");
   await ir('#/mapa', 1280, 800); await captura('escritorio-mapa-oscuro.png');

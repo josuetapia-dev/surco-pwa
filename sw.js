@@ -13,7 +13,7 @@
 // queda "en espera" y la app muestra el botón "Actualizar" (SKIP_WAITING).
 // =============================================================
 
-const VERSION = 'v1.1.1'; // v1.1.1: corrige menú lateral sticky y bordes en modo oscuro
+const VERSION = 'v1.1.2'; // v1.1.2: corrige desborde horizontal en celulares (grid minmax)
 const CACHE_SHELL = `surco-shell-${VERSION}`;
 const CACHE_RUNTIME = `surco-runtime-${VERSION}`;
 const CACHE_API = 'surco-api'; // los datos dinámicos sobreviven entre versiones
