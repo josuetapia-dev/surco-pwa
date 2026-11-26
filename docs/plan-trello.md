@@ -46,9 +46,12 @@
 |---|---|---|---|
 | **E1 hoy** | Repo, commits base, Netlify, entrega | Prueba en tableta real (instalar, foto, GPS, offline) | Prueba en escritorio, Lighthouse, URL en README |
 | **E0 estudio** | `sw.js`, `db.js` | `app.js`, `mapa.js`, `actividades.js`, cámara/GPS | `manifest.json`, notificaciones, `pendientes.js`, `ajustes.js` |
-| **E1+ Filament** | Dividir CSS, rediseño de Pendientes y Ajustes, merge y despliegue `v1.1.0` | Rediseño del Mapa (widgets) y de Actividades (tabla/form) | Tokens de diseño, fuente, shell (barra/sidebar), botones, badges, modo oscuro |
-| **E2 reporte** | Intro, Service Worker, IndexedDB, conclusiones | App Shell + manifest, Web APIs | Portada, pruebas + Lighthouse, formato APA, PDF |
-| **E3 demo** | Guion, banco de preguntas, plan B | Instalación en vivo y modo offline | Permisos en vivo y consola limpia |
+| **E1+ Filament** | Dividir CSS, rediseño de Pendientes y Ajustes, merge y despliegue `v1.1.0` | Rediseño del Mapa (widgets) y de Actividades (tabla/form), modo oscuro | Tokens de diseño, fuente, shell (barra/sidebar), botones, badges, revisión responsiva |
+| **E2 reporte** | Intro, Service Worker, IndexedDB, conclusiones | App Shell + manifest, Web APIs, ortografía y APA | Portada, pruebas + Lighthouse, PDF y entrega |
+| **E3 demo** | Guion, banco de preguntas, plan B | Instalación en vivo, modo offline, consola limpia | Permisos en vivo |
+| **Total en Trello** | 15 tarjetas | 12 tarjetas | 12 tarjetas |
+
+> Tablero real: https://trello.com/b/3RUkARDb/surco-pwa (creado el 25-nov). Si cambias algo allá, este archivo puede quedar desactualizado: **Trello es la fuente de verdad**.
 
 ---
 
@@ -121,7 +124,7 @@ E1P-09 Merge, subir VERSION a v1.1.0 y desplegar
 | E1P-04 | **Ángel** | ☐ Indicadores como **Stats widgets**: etiqueta pequeña gris, número grande, descripción con color · ☐ Mapa dentro de una **sección** (encabezado con título + descripción, cuerpo con padding) · ☐ Pestañas de cultivo como *tabs* de Filament · ☐ Mantener los colores semáforo de las plantas · ☐ PR |
 | E1P-05 | **Ángel** | ☐ Lista de actividades en **tabla** (escritorio) / tarjetas (móvil) con badges por tipo · ☐ Formulario en **secciones** ("Datos", "Evidencia") como los *Forms* de Filament · ☐ Diálogo de la ficha de planta con estilo de *modal* de Filament · ☐ PR |
 | E1P-06 | **Josué** | ☐ Pendientes como **tabla** con columnas Tarea / Cultivo / Fecha / Estado · ☐ Badges: vencida = *danger*, hoy = *warning*, próxima = *success*, hecha = *gray* · ☐ Ajustes en **secciones** de Filament · ☐ PR |
-| E1P-07 | **Andrey** | ☐ Paleta oscura (fondo gray-950, superficies gray-900, anillos white/10) · ☐ Respetar `prefers-color-scheme` · ☐ Interruptor en Ajustes guardado en IndexedDB (`meta`) · ☐ PR |
+| E1P-07 | **Ángel** | ☐ Paleta oscura (fondo gray-950, superficies gray-900, anillos white/10) · ☐ Respetar `prefers-color-scheme` · ☐ Interruptor en Ajustes guardado en IndexedDB (`meta`) · ☐ PR |
 | E1P-08 | **Andrey (QA)** | ☐ Revisar a 375 px, 768 px (tableta) y 1280 px · ☐ Sin desbordes ni textos cortados · ☐ Capturas antes/después para el reporte |
 | E1P-09 | **Josué** | ☐ Merge de los PR revisados · ☐ `VERSION = 'v1.1.0'` en `sw.js` · ☐ `node tools/probar-pwa.mjs` pasa · ☐ Push → Netlify despliega · ☐ En la tableta aparece "Actualizar" y se ve el diseño nuevo |
 
@@ -170,7 +173,7 @@ E2-10 Exportar a PDF y entregar
 | E2-06 | **Ángel** | Cámara, GPS y notificaciones: código + **flujo de permisos** (concedido / negado / no soportado) + capturas | README §7, `js/apis.js` |
 | E2-07 | **Andrey** | Capturas offline **en dispositivo real** (de E1-03) + Lighthouse **con análisis** de cada métrica + resultado de las 17 pruebas automáticas | `screenshots/`, `tools/probar-pwa.mjs` |
 | E2-08 | **Todos** (Josué integra) | Análisis crítico: retos, aprendizajes y mejoras futuras (sincronización con servidor, mapa satelital...) | — |
-| E2-09 | **Andrey** | Ortografía, márgenes, numeración de figuras y referencias **APA 7** (MDN, web.dev, W3C) | — |
+| E2-09 | **Ángel** | Ortografía, márgenes, numeración de figuras y referencias **APA 7** (MDN, web.dev, W3C) | — |
 | E2-10 | **Andrey** | PDF que abre bien + nomenclatura correcta + subido a tiempo | — |
 
 ---
@@ -193,6 +196,6 @@ E3-07 Plan B: video grabado, segundo dispositivo y datos móviles
 | E3-02 | **Ángel** | ☐ **Antes de la demo:** desinstalar la app y borrar los datos del sitio (si ya estaba instalada, la rúbrica la baja a "Regular") · ☐ Instalar desde la URL pública · ☐ Mostrar el ícono y la splash |
 | E3-03 | **Ángel** | ☐ Modo avión → abrir app → registrar actividad → verla en la lista y en la ficha de la planta |
 | E3-04 | **Andrey** | ☐ Restablecer los permisos del sitio para que **se vea la solicitud** · ☐ Mostrar también qué pasa si se niega uno |
-| E3-05 | **Andrey** | ☐ Tableta conectada por USB a la laptop · ☐ `chrome://inspect` con la consola abierta · ☐ Cero errores en rojo |
+| E3-05 | **Ángel** | ☐ Tableta conectada por USB a la laptop · ☐ `chrome://inspect` con la consola abierta · ☐ Cero errores en rojo |
 | E3-06 | **Josué** | ☐ 15 preguntas probables (SW, caché, IndexedDB, manifest, permisos) con respuesta · ☐ **Los 3** las practican: el docente pregunta a cualquiera, y si solo uno sabe la calificación baja a "Regular" |
 | E3-07 | **Josué** | ☐ Video de la demo completa · ☐ Celular con la app como respaldo · ☐ Datos móviles por si falla el WiFi del aula |

@@ -67,13 +67,15 @@ flowchart LR
 ├── offline.html          Página de respaldo sin conexión
 ├── manifest.json         Web App Manifest
 ├── sw.js                 Service Worker
-├── css/app.css           Estilos (móvil primero)
+├── css/                  base.css (tokens estilo Filament, shell, componentes) · mapa · actividades · pendientes-ajustes
 ├── js/
 │   ├── app.js            Arranque, registro del SW, enrutador, instalación
 │   ├── db.js             Capa IndexedDB (CRUD con promesas)
 │   ├── apis.js           Cámara, geolocalización, notificaciones, permisos
 │   ├── datos-demo.js     Datos ficticios iniciales
 │   ├── ui.js             Utilidades de interfaz
+│   ├── iconos.js         Íconos de trazo (estilo outline)
+│   ├── tema.js           Modo claro / oscuro
 │   └── vistas/           mapa.js · actividades.js · pendientes.js · ajustes.js
 ├── icons/                PNG 32, 96, 180, 192, 512 y maskable
 ├── screenshots/          Capturas (manifest y README)
@@ -100,7 +102,7 @@ La app muestra su propio botón **Instalar** usando el evento `beforeinstallprom
 
 | Evento | Qué hace |
 |---|---|
-| `install` | Precarga los 19 archivos del App Shell en `surco-shell-v1.0.0`. No llama a `skipWaiting()`: la versión nueva espera a que el usuario pulse **Actualizar**. |
+| `install` | Precarga los 24 archivos del App Shell en `surco-shell-v1.1.0`. No llama a `skipWaiting()`: la versión nueva espera a que el usuario pulse **Actualizar**. |
 | `activate` | **Borra las cachés de versiones anteriores** y toma el control de las pestañas (`clients.claim()`). |
 | `fetch` | Elige la estrategia según el recurso (tabla siguiente). |
 | `message` | `SKIP_WAITING` activa la versión nueva; `VERSION` responde la versión de caché. |
@@ -154,11 +156,11 @@ Los Service Workers funcionan en `localhost` sin HTTPS. En un dispositivo real h
 node tools/probar-pwa.mjs
 ```
 
-Abre Microsoft Edge (o Chrome) sin ventana y comprueba 17 puntos:
+Abre Microsoft Edge (o Chrome) sin ventana y comprueba 18 puntos:
 - App Shell y registro del Service Worker.
 - Precache y caché dinámica.
 - Manifest e instalabilidad.
-- Cámara (simulada), GPS (simulado) y notificaciones.
+- Modo oscuro, cámara (simulada), GPS (simulado) y notificaciones.
 - Guardado de la foto y del GPS en IndexedDB.
 - **Funcionamiento con el servidor apagado** y consola sin errores.
 

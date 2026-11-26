@@ -24,8 +24,8 @@ Hagan **un commit por módulo**, no uno gigante. Un historial descriptivo da pun
 git add .gitignore netlify.toml vercel.json .vercelignore docs/
 git commit -m "chore: estructura inicial, configuración de despliegue y plan de trabajo"
 
-git add index.html css/
-git commit -m "feat(shell): App Shell responsivo con navegación inferior/lateral"
+git add index.html css/ js/iconos.js js/tema.js
+git commit -m "feat(shell): App Shell responsivo estilo Filament, íconos y modo oscuro"
 
 git add manifest.json icons/ tools/generar-iconos.mjs
 git commit -m "feat(manifest): manifest de instalación e íconos 192/512/maskable"
