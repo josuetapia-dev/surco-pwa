@@ -1,0 +1,31 @@
+{
+  "id": "./",
+  "name": "Surco — Mapa de campo",
+  "short_name": "Surco",
+  "description": "Mapa electrónico de cultivos: estado de cada planta, actividades por surco con foto y GPS, y avisos de tareas pendientes. Funciona sin conexión.",
+  "lang": "es-MX",
+  "dir": "ltr",
+  "start_url": "./#/mapa",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#f4f1e8",
+  "theme_color": "#1f5130",
+  "categories": ["productivity", "business", "utilities"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [
+    { "src": "screenshots/escritorio-mapa.png", "sizes": "1280x800", "type": "image/png", "form_factor": "wide", "label": "Mapa de campo con el estado de cada planta" },
+    { "src": "screenshots/movil-mapa.png", "sizes": "540x1080", "type": "image/png", "form_factor": "narrow", "label": "Mapa de campo en el celular" },
+    { "src": "screenshots/movil-pendientes.png", "sizes": "540x1080", "type": "image/png", "form_factor": "narrow", "label": "Tareas vencidas y pendientes" }
+  ],
+  "shortcuts": [
+    { "name": "Nueva actividad", "short_name": "Registrar", "url": "./#/actividades/nueva", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Pendientes", "url": "./#/pendientes", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}
