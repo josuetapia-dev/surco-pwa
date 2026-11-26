@@ -1,9 +1,11 @@
 // =============================================================
-// Vista "Ajustes": perfil, permisos, almacenamiento, datos y versión.
+// Vista "Ajustes": perfil, apariencia, permisos, almacenamiento y versión.
 // =============================================================
 import * as db from '../db.js';
 import { RESPONSABLES, cargarDatosDemo } from '../datos-demo.js';
 import { esc, toast } from '../ui.js';
+import { icono } from '../iconos.js';
+import { temaActual, cambiarTema } from '../tema.js';
 import * as apis from '../apis.js';
 
 export async function vistaAjustes(raiz, _params, ctx) {
@@ -18,58 +20,85 @@ export async function vistaAjustes(raiz, _params, ctx) {
   const persistente = navigator.storage?.persisted ? await navigator.storage.persisted() : false;
   const instalada = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
   const mb = (b) => (b / 1024 / 1024).toFixed(1);
+  const tema = temaActual();
+  const permiso = (p) => `<span class="badge permiso-${p}">${apis.TEXTO_PERMISO[p]}</span>`;
+  const opcionTema = (valor, texto, ico) => `
+    <label><input type="radio" name="tema" value="${valor}" ${tema === valor ? 'checked' : ''}>${icono(ico)}${texto}</label>`;
 
   raiz.innerHTML = `
-    <section class="encabezado-vista"><div><h1>Ajustes</h1><p class="sub">Finca Tres Ríos (datos de demostración)</p></div></section>
+    <header class="encabezado-vista">
+      <div>
+        <div class="migas"><span>Finca Tres Ríos</span><span>Ajustes</span></div>
+        <h1>Ajustes</h1>
+      </div>
+    </header>
 
     <div class="rejilla-paneles">
-      <section class="panel">
-        <h2>👤 ¿Quién registra?</h2>
-        <label>Responsable en esta tableta
-          <select id="sel-responsable">${RESPONSABLES.map((r) => `<option ${r === responsable ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select>
-        </label>
-        <p class="sub">No requiere usuario ni contraseña: es un perfil de demostración.</p>
+      <section class="seccion">
+        <div class="seccion-cabecera"><div><h2>Perfil</h2><p>Quién registra las actividades en esta tableta.</p></div></div>
+        <div class="seccion-cuerpo">
+          <label>Responsable
+            <select id="sel-responsable">${RESPONSABLES.map((r) => `<option ${r === responsable ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select>
+          </label>
+          <p class="nota" style="margin-top: .75rem">No requiere usuario ni contraseña: es un perfil de demostración.</p>
+        </div>
       </section>
 
-      <section class="panel">
-        <h2>🔐 Permisos del dispositivo</h2>
-        <ul class="lista-permisos">
-          <li><span>📷 Cámara</span><span class="chip permiso-${permisos.camera}">${apis.TEXTO_PERMISO[permisos.camera]}</span></li>
-          <li><span>📍 Ubicación</span><span class="chip permiso-${permisos.geolocation}">${apis.TEXTO_PERMISO[permisos.geolocation]}</span></li>
-          <li><span>🔔 Notificaciones</span><span class="chip permiso-${permisos.notifications}">${apis.TEXTO_PERMISO[permisos.notifications]}</span></li>
-        </ul>
-        <p class="sub">Los permisos se piden solo cuando usas la función (tomar foto, obtener ubicación, "Avisarme").
-        Si negaste alguno, reactívalo desde el candado de la barra de direcciones.</p>
+      <section class="seccion">
+        <div class="seccion-cabecera"><div><h2>Apariencia</h2><p>Tema de la aplicación. Se guarda en el dispositivo.</p></div></div>
+        <div class="seccion-cuerpo">
+          <div class="segmentado" role="radiogroup" aria-label="Tema">
+            ${opcionTema('sistema', 'Sistema', 'monitor')}
+            ${opcionTema('claro', 'Claro', 'sol')}
+            ${opcionTema('oscuro', 'Oscuro', 'luna')}
+          </div>
+        </div>
       </section>
 
-      <section class="panel">
-        <h2>💾 Datos locales (IndexedDB)</h2>
-        <ul class="lista-permisos">
-          <li><span>Plantas</span><strong>${nPlantas}</strong></li>
-          <li><span>Actividades</span><strong>${nActividades}</strong></li>
-          <li><span>Tareas</span><strong>${nTareas}</strong></li>
-          ${almacen ? `<li><span>Espacio usado</span><strong>${mb(almacen.usage)} MB de ${mb(almacen.quota)} MB</strong></li>` : ''}
-          <li><span>Almacenamiento persistente</span><strong id="txt-persistente">${persistente ? 'Sí' : 'No'}</strong></li>
-        </ul>
-        <div class="fila-botones">
-          ${persistente ? '' : '<button type="button" class="btn btn-secundario" id="btn-persistir">Evitar que el navegador borre los datos</button>'}
-          <button type="button" class="btn btn-secundario" id="btn-exportar">Exportar respaldo (JSON)</button>
+      <section class="seccion">
+        <div class="seccion-cabecera"><div><h2>Permisos del dispositivo</h2><p>Se piden solo al usar la función (tomar foto, obtener ubicación, "Avisarme").</p></div></div>
+        <div class="seccion-cuerpo">
+          <ul class="lista-datos">
+            <li><span>Cámara</span>${permiso(permisos.camera)}</li>
+            <li><span>Ubicación</span>${permiso(permisos.geolocation)}</li>
+            <li><span>Notificaciones</span>${permiso(permisos.notifications)}</li>
+          </ul>
+          <p class="nota" style="margin-top: .75rem">Si negaste alguno, reactívalo desde el candado de la barra de direcciones.</p>
+        </div>
+      </section>
+
+      <section class="seccion">
+        <div class="seccion-cabecera"><div><h2>Datos locales</h2><p>Base IndexedDB "surco" en este dispositivo.</p></div></div>
+        <div class="seccion-cuerpo">
+          <ul class="lista-datos">
+            <li><span>Plantas</span><strong>${nPlantas}</strong></li>
+            <li><span>Actividades</span><strong>${nActividades}</strong></li>
+            <li><span>Tareas</span><strong>${nTareas}</strong></li>
+            ${almacen ? `<li><span>Espacio usado</span><strong>${mb(almacen.usage)} MB de ${mb(almacen.quota)} MB</strong></li>` : ''}
+            <li><span>Almacenamiento persistente</span><strong id="txt-persistente">${persistente ? 'Sí' : 'No'}</strong></li>
+          </ul>
+        </div>
+        <div class="seccion-pie">
+          ${persistente ? '' : '<button type="button" class="btn" id="btn-persistir">Evitar que se borren</button>'}
+          <button type="button" class="btn" id="btn-exportar">Exportar respaldo (JSON)</button>
           <button type="button" class="btn btn-peligro" id="btn-restablecer">Restablecer datos demo</button>
         </div>
       </section>
 
-      <section class="panel">
-        <h2>📲 Aplicación</h2>
-        <ul class="lista-permisos">
-          <li><span>Instalada</span><strong>${instalada ? 'Sí (modo app)' : 'No (navegador)'}</strong></li>
-          <li><span>Conexión</span><strong>${navigator.onLine ? 'En línea' : 'Sin conexión'}</strong></li>
-          <li><span>Service Worker</span><strong id="txt-sw">${navigator.serviceWorker?.controller ? 'Activo' : 'No activo'}</strong></li>
-          <li><span>Versión de caché</span><strong id="txt-version">…</strong></li>
-        </ul>
-        <div class="fila-botones">
-          <button type="button" class="btn btn-secundario" id="btn-actualizar">Buscar actualización</button>
+      <section class="seccion">
+        <div class="seccion-cabecera"><div><h2>Aplicación</h2><p>Estado de la instalación y del Service Worker.</p></div></div>
+        <div class="seccion-cuerpo">
+          <ul class="lista-datos">
+            <li><span>Instalada</span>${instalada ? '<span class="badge b-success">Sí (modo app)</span>' : '<span class="badge b-gray">No (navegador)</span>'}</li>
+            <li><span>Conexión</span>${navigator.onLine ? '<span class="badge b-success">En línea</span>' : '<span class="badge b-warning">Sin conexión</span>'}</li>
+            <li><span>Service Worker</span>${navigator.serviceWorker?.controller ? '<span class="badge b-success">Activo</span>' : '<span class="badge b-gray">No activo</span>'}</li>
+            <li><span>Versión de caché</span><code id="txt-version">…</code></li>
+          </ul>
+          ${instalada ? '' : '<p class="nota" style="margin-top: .75rem">Para instalar: botón <strong>Instalar</strong> arriba, o menú ⋮ del navegador › "Instalar app".</p>'}
         </div>
-        ${instalada ? '' : '<p class="sub">Para instalar: botón <strong>Instalar</strong> arriba, o menú ⋮ del navegador › "Instalar app" / "Agregar a pantalla de inicio".</p>'}
+        <div class="seccion-pie">
+          <button type="button" class="btn" id="btn-actualizar">Buscar actualización</button>
+        </div>
       </section>
     </div>
   `;
@@ -80,6 +109,18 @@ export async function vistaAjustes(raiz, _params, ctx) {
     await db.escribirMeta('responsable', e.target.value);
     toast(`Responsable: ${e.target.value}`);
   });
+
+  raiz.querySelectorAll('input[name="tema"]').forEach((r) => r.addEventListener('change', async () => {
+    await cambiarTema(r.value);
+    toast(`Tema: ${r.parentElement.textContent.trim()}`);
+  }));
+
+  // Si se cambia el tema con el botón de la barra, reflejarlo aquí.
+  const alCambiarTema = () => {
+    const actual = temaActual();
+    raiz.querySelectorAll('input[name="tema"]').forEach((r) => { r.checked = r.value === actual; });
+  };
+  window.addEventListener('tema-cambiado', alCambiarTema);
 
   $('#btn-persistir')?.addEventListener('click', async () => {
     const ok = await navigator.storage.persist();
@@ -109,6 +150,7 @@ export async function vistaAjustes(raiz, _params, ctx) {
     sessionStorage.clear();
     toast('Datos demo restablecidos');
     window.dispatchEvent(new Event('datos-cambiaron'));
+    window.removeEventListener('tema-cambiado', alCambiarTema);
     vistaAjustes(raiz, _params, ctx);
   });
 
@@ -120,4 +162,7 @@ export async function vistaAjustes(raiz, _params, ctx) {
   });
 
   ctx.versionSW().then((v) => { const el = $('#txt-version'); if (el) el.textContent = v || 'desconocida'; });
+
+  // Limpieza al salir de la vista.
+  return () => window.removeEventListener('tema-cambiado', alCambiarTema);
 }

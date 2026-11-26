@@ -3,7 +3,8 @@
 // hacer y no se hizo (vencidas) y permite avisar con notificaciones.
 // =============================================================
 import * as db from '../db.js';
-import { TIPOS_ACTIVIDAD, esc, fechaLarga, fechaLocalISO, toast } from '../ui.js';
+import { TIPOS_ACTIVIDAD, esc, fechaLarga, fechaLocalISO, toast, badgeTipo } from '../ui.js';
+import { icono } from '../iconos.js';
 import * as apis from '../apis.js';
 
 /** Clasifica las tareas por urgencia. Se usa también para el contador del menú. */
@@ -29,57 +30,89 @@ export async function avisarPendientes() {
   return apis.notificar(`Surco: ${r.vencidas.length} vencida(s), ${r.deHoy.length} para hoy`, { cuerpo: lineas });
 }
 
+const ESTADO_TAREA = {
+  vencida: '<span class="badge b-danger">Vencida</span>',
+  hoy: '<span class="badge b-warning">Para hoy</span>',
+  proxima: '<span class="badge b-success">Próxima</span>',
+  hecha: '<span class="badge b-gray">Hecha</span>',
+};
+
 export async function vistaPendientes(raiz) {
   const [r, cultivos] = await Promise.all([resumenPendientes(), db.obtenerTodos('cultivos')]);
   const nombre = Object.fromEntries(cultivos.map((c) => [c.id, `${c.nombre} (${c.lote})`]));
   const permiso = await apis.estadoPermiso('notifications');
+  const porFecha = (a, b) => a.fechaLimite.localeCompare(b.fechaLimite);
 
-  const item = (t, clase) => `
-    <li class="tarea ${clase}">
-      <div>
-        <strong>${esc(t.titulo)}</strong>
-        <p class="sub">${esc(t.tipo)} · ${esc(nombre[t.cultivoId] || t.cultivoId)}</p>
-        <p class="sub">${t.hecha ? `Hecha el ${fechaLarga(t.hechaEn.slice(0, 10))}` : `Fecha límite: ${fechaLarga(t.fechaLimite)}`}</p>
-      </div>
-      ${t.hecha ? '<span class="chip">✔ Hecha</span>' : `
-        <div class="tarea-acciones">
-          <a class="btn btn-chico" href="#/actividades/nueva?tipo=${encodeURIComponent(t.tipo)}&cultivo=${t.cultivoId}&tarea=${t.id}">Registrar</a>
-          <button type="button" class="btn btn-chico btn-secundario" data-hecha="${t.id}">Marcar hecha</button>
-        </div>`}
-    </li>`;
+  // Orden de la tabla: lo vencido primero, luego hoy, próximas y al final las hechas.
+  const filas = [
+    ...r.vencidas.sort(porFecha).map((t) => [t, 'vencida']),
+    ...r.deHoy.map((t) => [t, 'hoy']),
+    ...r.proximas.sort(porFecha).map((t) => [t, 'proxima']),
+    ...r.hechas.sort((a, b) => (b.hechaEn || '').localeCompare(a.hechaEn || '')).map((t) => [t, 'hecha']),
+  ];
 
-  const grupo = (titulo, lista, clase, vacio) => `
-    <section class="grupo-tareas">
-      <h2>${titulo} <span class="contador">${lista.length}</span></h2>
-      <ul>${lista.length ? lista.sort((a, b) => a.fechaLimite.localeCompare(b.fechaLimite)).map((t) => item(t, clase)).join('') : `<li class="vacio">${vacio}</li>`}</ul>
-    </section>`;
+  const stat = (etiqueta, valor, desc, clase, ico) => `
+    <div class="stat">
+      <span class="stat-etiqueta">${icono(ico)}${etiqueta}</span>
+      <span class="stat-valor">${valor}</span>
+      <span class="stat-desc ${clase}">${desc}</span>
+    </div>`;
 
   raiz.innerHTML = `
-    <section class="encabezado-vista">
+    <header class="encabezado-vista">
       <div>
+        <div class="migas"><span>Finca Tres Ríos</span><span>Pendientes</span></div>
         <h1>Pendientes</h1>
         <p class="sub">El sistema como supervisor: lo que tocaba hacer y no se hizo aparece en rojo.</p>
       </div>
-      <button type="button" class="btn btn-primario" id="btn-avisar">🔔 Avisarme</button>
+      <button type="button" class="btn btn-primario" id="btn-avisar">${icono('campana')}Avisarme</button>
+    </header>
+
+    <div class="stats">
+      ${stat('Vencidas', r.vencidas.length, r.vencidas.length ? 'No se hicieron a tiempo' : 'Nada vencido', r.vencidas.length ? 'c-danger' : 'c-success', 'alerta')}
+      ${stat('Para hoy', r.deHoy.length, 'Programadas para hoy', r.deHoy.length ? 'c-warning' : '', 'reloj')}
+      ${stat('Próximas', r.proximas.length, 'En los próximos días', '', 'calendario')}
+      ${stat('Hechas', r.hechas.length, 'Completadas', 'c-success', 'check')}
+    </div>
+
+    <section class="seccion">
+      <div class="seccion-cabecera">
+        <div>
+          <h2>Calendario de tareas</h2>
+          <p id="estado-notif">Notificaciones: ${apis.TEXTO_PERMISO[permiso] || permiso}</p>
+        </div>
+      </div>
+      <div class="seccion-cuerpo sin-padding tabla-envoltura">
+        ${filas.length ? `
+        <table class="tabla">
+          <thead><tr><th>Tarea</th><th>Cultivo</th><th>Fecha límite</th><th>Estado</th><th class="acciones"><span class="sr">Acciones</span></th></tr></thead>
+          <tbody>
+            ${filas.map(([t, estado]) => `
+              <tr class="${estado === 'vencida' ? 'fila-vencida' : ''} ${estado === 'hecha' ? 'fila-hecha' : ''}">
+                <td><span class="titulo-tarea">${esc(t.titulo)}</span><br>${badgeTipo(t.tipo)}</td>
+                <td data-col="Cultivo">${esc(nombre[t.cultivoId] || t.cultivoId)}</td>
+                <td data-col="Fecha límite" class="suave">${estado === 'hecha' && t.hechaEn ? `Hecha el ${fechaLarga(t.hechaEn.slice(0, 10))}` : fechaLarga(t.fechaLimite)}</td>
+                <td data-col="Estado">${ESTADO_TAREA[estado]}</td>
+                <td class="acciones">${estado === 'hecha' ? '' : `
+                  <a class="btn btn-chico" href="#/actividades/nueva?tipo=${encodeURIComponent(t.tipo)}&cultivo=${t.cultivoId}&tarea=${t.id}">Registrar</a>
+                  <button type="button" class="btn btn-chico" data-hecha="${t.id}">${icono('check')}Hecha</button>`}
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>` : '<p class="vacio">No hay tareas programadas.</p>'}
+      </div>
     </section>
-    <p class="estado-api" id="estado-notif">Notificaciones: ${apis.TEXTO_PERMISO[permiso] || permiso}</p>
 
-    ${grupo('⛔ Vencidas (no se hicieron)', r.vencidas, 'vencida', 'Nada vencido. ¡Bien!')}
-    ${grupo('📅 Para hoy', r.deHoy, 'hoy', 'Nada programado para hoy.')}
-    ${grupo('🗓️ Próximas', r.proximas, 'proxima', 'Sin tareas próximas.')}
-
-    <details class="panel">
-      <summary><strong>+ Programar una tarea</strong></summary>
-      <form id="form-tarea" class="campos">
+    <details class="seccion programar">
+      <summary><div><h2>Programar una tarea</h2><p class="sub">Se guarda en el dispositivo y aparecerá en el calendario.</p></div></summary>
+      <form id="form-tarea" class="seccion-cuerpo campos">
         <label class="ancho">Descripción <input name="titulo" required placeholder="Ej. Fertilización surcos 5–8"></label>
         <label>Tipo <select name="tipo">${TIPOS_ACTIVIDAD.map((t) => `<option>${t}</option>`).join('')}</select></label>
         <label>Cultivo <select name="cultivoId">${cultivos.map((c) => `<option value="${c.id}">${esc(c.nombre)}</option>`).join('')}</select></label>
         <label>Fecha límite <input name="fechaLimite" type="date" required value="${r.hoy}"></label>
-        <div class="fila-botones fin ancho"><button class="btn btn-primario">Guardar tarea</button></div>
+        <div class="fila-botones fin ancho" style="margin-top: 0"><button class="btn btn-primario">${icono('mas')}Guardar tarea</button></div>
       </form>
     </details>
-
-    ${grupo('✅ Hechas', r.hechas, 'hecha', 'Aún no hay tareas hechas.')}
   `;
 
   raiz.querySelectorAll('[data-hecha]').forEach((btn) => btn.addEventListener('click', async () => {
@@ -102,17 +135,17 @@ export async function vistaPendientes(raiz) {
 
   raiz.querySelector('#btn-avisar').addEventListener('click', async () => {
     const estado = raiz.querySelector('#estado-notif');
-    estado.classList.remove('alerta');
+    estado.classList.remove('estado-api', 'alerta');
     const resultado = await apis.pedirPermisoNotificaciones();
     if (resultado === 'granted') {
       await avisarPendientes();
       estado.textContent = 'Notificaciones: Concedido. Aviso enviado.';
     } else if (resultado === 'denied') {
       estado.textContent = 'Notificaciones negadas. Actívalas desde el candado de la barra de direcciones › Notificaciones.';
-      estado.classList.add('alerta');
+      estado.classList.add('estado-api', 'alerta');
     } else if (resultado === 'no-soportado') {
       estado.textContent = 'Este navegador no soporta notificaciones.';
-      estado.classList.add('alerta');
+      estado.classList.add('estado-api', 'alerta');
     } else {
       estado.textContent = 'No se concedió el permiso (puedes intentarlo de nuevo).';
     }

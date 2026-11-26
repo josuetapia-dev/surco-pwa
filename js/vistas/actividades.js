@@ -4,7 +4,8 @@
 // =============================================================
 import * as db from '../db.js';
 import { RESPONSABLES } from '../datos-demo.js';
-import { TIPOS_ACTIVIDAD, esc, fechaHora, toast, abrirDialogo, cerrarDialogo, fechaLocalISO } from '../ui.js';
+import { TIPOS_ACTIVIDAD, esc, fechaHora, toast, abrirDialogo, cerrarDialogo, fechaLocalISO, badgeTipo } from '../ui.js';
+import { icono } from '../iconos.js';
 import * as apis from '../apis.js';
 
 // ---------------- Historial ----------------
@@ -19,36 +20,50 @@ export async function vistaActividades(raiz, params) {
   const urls = [];
 
   raiz.innerHTML = `
-    <section class="encabezado-vista">
+    <header class="encabezado-vista">
       <div>
+        <div class="migas"><span>Finca Tres Ríos</span><span>Actividades</span></div>
         <h1>Actividades</h1>
-        <p class="sub">${lista.length} registro(s) guardados en este dispositivo</p>
       </div>
-      <a class="btn btn-primario" href="#/actividades/nueva">+ Nueva actividad</a>
-    </section>
+      <a class="btn btn-primario" href="#/actividades/nueva">${icono('mas')}Nueva actividad</a>
+    </header>
 
-    <nav class="filtros" aria-label="Filtrar por tipo">
-      <a href="#/actividades" class="chip-filtro" ${!filtro ? 'aria-current="true"' : ''}>Todas</a>
-      ${TIPOS_ACTIVIDAD.map((t) => `<a href="#/actividades?tipo=${encodeURIComponent(t)}" class="chip-filtro" ${t === filtro ? 'aria-current="true"' : ''}>${t}</a>`).join('')}
+    <nav class="tabs" aria-label="Filtrar por tipo">
+      <a href="#/actividades" class="tab" ${!filtro ? 'aria-current="true"' : ''}>Todas</a>
+      ${TIPOS_ACTIVIDAD.map((t) => `<a href="#/actividades?tipo=${encodeURIComponent(t)}" class="tab" ${t === filtro ? 'aria-current="true"' : ''}>${t}</a>`).join('')}
     </nav>
 
-    <ul class="tarjetas">
-      ${lista.length ? lista.map((a) => {
-        let foto = '<div class="foto-vacia" aria-hidden="true">Sin foto</div>';
-        if (a.foto) { const u = URL.createObjectURL(a.foto); urls.push(u); foto = `<img src="${u}" alt="Evidencia: ${esc(a.tipo)}" loading="lazy">`; }
-        return `
-        <li class="tarjeta">
-          ${foto}
-          <div class="tarjeta-cuerpo">
-            <div class="tarjeta-titulo"><strong>${esc(a.tipo)}</strong><time>${fechaHora(a.fecha)}</time></div>
-            <p>${esc(nombreCultivo[a.cultivoId] || a.cultivoId)} · Surco ${a.surco}${a.plantaId ? ` · <code>${esc(a.plantaId)}</code>` : ''}</p>
-            <p class="sub">👤 ${esc(a.responsable)}</p>
-            ${a.notas ? `<p>${esc(a.notas)}</p>` : ''}
-            ${a.ubicacion ? `<a class="chip" href="${apis.enlaceMapa(a.ubicacion)}" target="_blank" rel="noopener">📍 ${a.ubicacion.lat}, ${a.ubicacion.lon} (±${a.ubicacion.precision} m)</a>` : '<span class="chip chip-gris">Sin GPS</span>'}
-          </div>
-        </li>`;
-      }).join('') : '<li class="vacio">Aún no hay actividades. Registra la primera.</li>'}
-    </ul>
+    <section class="seccion">
+      <div class="seccion-cabecera">
+        <div>
+          <h2>Registro de actividades</h2>
+          <p>${lista.length} registro(s) guardados en este dispositivo (IndexedDB). Funciona sin conexión.</p>
+        </div>
+      </div>
+      <div class="seccion-cuerpo sin-padding tabla-envoltura">
+        ${lista.length ? `
+        <table class="tabla">
+          <thead><tr><th>Actividad</th><th>Tipo</th><th>Ubicación en campo</th><th>Responsable</th><th>Fecha</th><th>GPS</th></tr></thead>
+          <tbody>
+            ${lista.map((a) => {
+              let foto = `<span class="miniatura-vacia" title="Sin foto">${icono('foto')}</span>`;
+              if (a.foto) { const u = URL.createObjectURL(a.foto); urls.push(u); foto = `<img class="miniatura" src="${u}" alt="Evidencia: ${esc(a.tipo)}" loading="lazy">`; }
+              return `
+              <tr>
+                <td><div class="celda-actividad">${foto}<span class="notas">${esc(a.notas) || '<span class="suave">Sin observaciones</span>'}</span></div></td>
+                <td data-col="Tipo">${badgeTipo(a.tipo)}</td>
+                <td data-col="Ubicación en campo">${esc(nombreCultivo[a.cultivoId] || a.cultivoId)} · Surco ${a.surco}${a.plantaId ? `<br><code>${esc(a.plantaId)}</code>` : ''}</td>
+                <td data-col="Responsable">${esc(a.responsable)}</td>
+                <td data-col="Fecha" class="suave">${fechaHora(a.fecha)}</td>
+                <td data-col="GPS">${a.ubicacion
+                  ? `<a class="badge b-success" href="${apis.enlaceMapa(a.ubicacion)}" target="_blank" rel="noopener" title="${a.ubicacion.lat}, ${a.ubicacion.lon}">±${a.ubicacion.precision} m</a>`
+                  : '<span class="badge b-gray">Sin GPS</span>'}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>` : '<p class="vacio">Aún no hay actividades. Registra la primera.</p>'}
+      </div>
+    </section>
   `;
 
   return () => urls.forEach((u) => URL.revokeObjectURL(u));
@@ -73,68 +88,77 @@ export async function vistaNuevaActividad(raiz, params) {
   let stream = null;        // MediaStream activo
 
   raiz.innerHTML = `
-    <section class="encabezado-vista">
+    <header class="encabezado-vista">
       <div>
+        <div class="migas"><span>Actividades</span><span>Nueva</span></div>
         <h1>Nueva actividad</h1>
-        <p class="sub">Se guarda en el dispositivo aunque no haya internet.</p>
       </div>
-      <a class="btn" href="#/actividades">Cancelar</a>
-    </section>
+    </header>
 
     <form id="form-actividad" class="formulario" novalidate>
-      <div class="campos">
-        <label>Tipo de actividad
-          <select name="tipo" required>
-            ${TIPOS_ACTIVIDAD.map((t) => `<option ${t === pre.tipo ? 'selected' : ''}>${t}</option>`).join('')}
-          </select>
-        </label>
-        <label>Cultivo
-          <select name="cultivoId" required>
-            ${cultivos.map((c) => `<option value="${c.id}" ${c.id === pre.cultivo ? 'selected' : ''}>${esc(c.nombre)} (${esc(c.lote)})</option>`).join('')}
-          </select>
-        </label>
-        <label>Surco
-          <input name="surco" type="number" min="1" required value="${pre.surco}">
-        </label>
-        <label>Planta (opcional)
-          <input name="plantaId" placeholder="Ej. LIM-S03-P07" value="${esc(pre.planta)}" autocomplete="off">
-        </label>
-        <label>Responsable
-          <select name="responsable">
-            ${RESPONSABLES.map((r) => `<option ${r === responsable ? 'selected' : ''}>${esc(r)}</option>`).join('')}
-          </select>
-        </label>
-        <label class="ancho">Observaciones
-          <textarea name="notas" rows="3" placeholder="¿Qué se hizo? ¿Qué se observó?"></textarea>
-        </label>
-      </div>
-
-      <section class="evidencia">
-        <div class="panel">
-          <h2>📷 Foto de evidencia</h2>
-          <div id="foto-vista" class="foto-vista"><span>Sin foto</span></div>
-          <div class="fila-botones">
-            <button type="button" class="btn" id="btn-camara">Tomar foto</button>
-            <label class="btn btn-secundario" id="lbl-archivo">Elegir imagen
-              <input type="file" accept="image/*" capture="environment" id="input-archivo" hidden>
-            </label>
-          </div>
-          <p class="estado-api" id="estado-camara"></p>
+      <section class="seccion">
+        <div class="seccion-cabecera">
+          <div><h2>Datos de la actividad</h2><p>Se guarda en el dispositivo aunque no haya internet.</p></div>
         </div>
+        <div class="seccion-cuerpo campos">
+          <label>Tipo de actividad
+            <select name="tipo" required>
+              ${TIPOS_ACTIVIDAD.map((t) => `<option ${t === pre.tipo ? 'selected' : ''}>${t}</option>`).join('')}
+            </select>
+          </label>
+          <label>Cultivo
+            <select name="cultivoId" required>
+              ${cultivos.map((c) => `<option value="${c.id}" ${c.id === pre.cultivo ? 'selected' : ''}>${esc(c.nombre)} (${esc(c.lote)})</option>`).join('')}
+            </select>
+          </label>
+          <label>Surco
+            <input name="surco" type="number" min="1" required value="${pre.surco}">
+          </label>
+          <label>Planta (opcional)
+            <input name="plantaId" placeholder="Ej. LIM-S03-P07" value="${esc(pre.planta)}" autocomplete="off">
+          </label>
+          <label>Responsable
+            <select name="responsable">
+              ${RESPONSABLES.map((r) => `<option ${r === responsable ? 'selected' : ''}>${esc(r)}</option>`).join('')}
+            </select>
+          </label>
+          <label class="ancho">Observaciones
+            <textarea name="notas" rows="3" placeholder="¿Qué se hizo? ¿Qué se observó?"></textarea>
+          </label>
+        </div>
+      </section>
 
-        <div class="panel">
-          <h2>📍 Ubicación GPS</h2>
-          <div id="geo-vista" class="geo-vista">Sin ubicación</div>
-          <div class="fila-botones">
-            <button type="button" class="btn" id="btn-geo">Obtener ubicación</button>
+      <section class="seccion">
+        <div class="seccion-cabecera">
+          <div><h2>Evidencia</h2><p>Foto y ubicación de quien registra. El navegador pide permiso la primera vez.</p></div>
+        </div>
+        <div class="seccion-cuerpo evidencia">
+          <div>
+            <h3>${icono('camara')} Foto</h3>
+            <div id="foto-vista" class="foto-vista"><span>Sin foto</span></div>
+            <div class="fila-botones">
+              <button type="button" class="btn" id="btn-camara">${icono('camara')}Tomar foto</button>
+              <label class="btn" id="lbl-archivo">${icono('foto')}Elegir imagen
+                <input type="file" accept="image/*" capture="environment" id="input-archivo" hidden>
+              </label>
+            </div>
+            <p class="estado-api" id="estado-camara"></p>
           </div>
-          <p class="estado-api" id="estado-geo"></p>
+          <div>
+            <h3>${icono('ubicacion')} Ubicación GPS</h3>
+            <div id="geo-vista" class="geo-vista">Sin ubicación</div>
+            <div class="fila-botones">
+              <button type="button" class="btn" id="btn-geo">${icono('ubicacion')}Obtener ubicación</button>
+            </div>
+            <p class="estado-api" id="estado-geo"></p>
+          </div>
         </div>
       </section>
 
       <p class="error-form" id="error-form" role="alert"></p>
-      <div class="fila-botones fin">
-        <button type="submit" class="btn btn-primario btn-grande">Guardar actividad</button>
+      <div class="fila-botones fin" style="margin-top: 0">
+        <a class="btn" href="#/actividades">Cancelar</a>
+        <button type="submit" class="btn btn-primario btn-grande">${icono('check')}Guardar actividad</button>
       </div>
     </form>
   `;
@@ -149,7 +173,7 @@ export async function vistaNuevaActividad(raiz, params) {
     fotoUrl = URL.createObjectURL(blob);
     $('#foto-vista').innerHTML = `<img src="${fotoUrl}" alt="Vista previa de la foto">`;
     $('#estado-camara').textContent = `Foto lista (${Math.round(blob.size / 1024)} KB, comprimida).`;
-    $('#btn-camara').textContent = 'Repetir foto';
+    $('#btn-camara').innerHTML = `${icono('camara')}Repetir foto`;
   }
 
   if (!apis.camaraSoportada()) {
@@ -160,11 +184,12 @@ export async function vistaNuevaActividad(raiz, params) {
   $('#btn-camara').addEventListener('click', async () => {
     const d = abrirDialogo(`
       <div class="camara">
+        <h2>Tomar foto de evidencia</h2>
         <video playsinline muted autoplay></video>
         <p class="estado-api" id="estado-dialogo">Solicitando permiso de cámara…</p>
-        <div class="fila-botones">
+        <div class="fila-botones fin" style="margin-top: 0">
           <button type="button" class="btn" data-cerrar>Cancelar</button>
-          <button type="button" class="btn btn-primario" id="btn-capturar" disabled>Capturar</button>
+          <button type="button" class="btn btn-primario" id="btn-capturar" disabled>${icono('camara')}Capturar</button>
         </div>
       </div>`, { alCerrar: () => { apis.detenerCamara(stream); stream = null; } });
     const video = d.querySelector('video');
