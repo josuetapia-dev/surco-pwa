@@ -6,7 +6,7 @@
 // Además genera las capturas que usa manifest.json (carpeta screenshots/).
 // =============================================================
 import { spawn } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, existsSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, existsSync, rmSync, appendFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -23,7 +23,12 @@ const NAVEGADORES = [
 ];
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
 const resultados = [];
-const ok = (nombre, paso, detalle = '') => { resultados.push({ nombre, paso, detalle }); console.log(`${paso ? '✅' : '❌'} ${nombre}${detalle ? ` — ${detalle}` : ''}`); };
+const ok = (nombre, paso, detalle = '') => {
+  resultados.push({ nombre, paso, detalle });
+  console.log(`${paso ? '✅' : '❌'} ${nombre}${detalle ? ` — ${detalle}` : ''}`);
+  // En GitHub Actions, cada fallo aparece como anotación visible en el PR y en la pestaña Actions.
+  if (!paso && process.env.GITHUB_ACTIONS) console.log(`::error title=${nombre.replace(/[:,\n]/g, ' ')}::${String(detalle).replace(/\n/g, ' ').slice(0, 900) || 'falló'}`);
+};
 
 // ---------- Servidor y navegador ----------
 const servidor = spawn(process.execPath, [join(RAIZ, 'tools', 'servidor-local.mjs'), String(PUERTO)], { stdio: 'ignore' });
@@ -248,5 +253,13 @@ try {
   try { rmSync(perfil, { recursive: true, force: true }); } catch { /* Edge puede tardar en soltar archivos */ }
   const fallos = resultados.filter((r) => !r.paso).length;
   console.log(`\n${resultados.length - fallos}/${resultados.length} pruebas pasaron`);
+  // Resumen en la página de la corrida de GitHub Actions
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    appendFileSync(process.env.GITHUB_STEP_SUMMARY, [
+      `## Pruebas de la PWA: ${resultados.length - fallos}/${resultados.length} pasaron`, '',
+      '| | Prueba | Detalle |', '|---|---|---|',
+      ...resultados.map((r) => `| ${r.paso ? '✅' : '❌'} | ${r.nombre} | ${String(r.detalle).replace(/\|/g, '/').slice(0, 200)} |`), '',
+    ].join('\n'));
+  }
   process.exit(fallos ? 1 : 0);
 }
