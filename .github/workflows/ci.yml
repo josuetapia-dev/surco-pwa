@@ -1,0 +1,57 @@
+# =============================================================
+# CI de Surco: se ejecuta en cada push a main y en cada Pull Request.
+# Si algún paso falla, GitHub marca el commit/PR en rojo y no se debe hacer merge.
+# =============================================================
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: # permite correrlo a mano desde la pestaña Actions
+
+permissions:
+  contents: read
+
+# Si llegan dos pushes seguidos al mismo PR, cancela la corrida anterior.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pruebas:
+    name: Pruebas de la PWA
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Revisar sintaxis de JavaScript
+        run: |
+          for f in sw.js js/*.js js/vistas/*.js tools/*.mjs; do
+            node --check "$f" && echo "✔ $f"
+          done
+
+      - name: Verificar App Shell, manifest e íconos
+        run: node tools/verificar-shell.mjs
+
+      - name: Pruebas en Chrome (SW, offline, IndexedDB, Web APIs, responsivo)
+        run: node tools/probar-pwa.mjs
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+
+      - name: Guardar capturas de pantalla de la prueba
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: capturas-${{ github.run_number }}
+          path: screenshots/
+          retention-days: 14

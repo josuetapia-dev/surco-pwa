@@ -15,6 +15,8 @@ const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PUERTO = 5199;
 const URL_APP = `http://localhost:${PUERTO}/`;
 const NAVEGADORES = [
+  process.env.CHROME_PATH,                      // GitHub Actions / ruta personalizada
+  '/usr/bin/google-chrome', '/usr/bin/chromium-browser', '/usr/bin/chromium',
   'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
   'C:/Program Files/Microsoft/Edge/Application/msedge.exe',
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
@@ -26,13 +28,15 @@ const ok = (nombre, paso, detalle = '') => { resultados.push({ nombre, paso, det
 // ---------- Servidor y navegador ----------
 const servidor = spawn(process.execPath, [join(RAIZ, 'tools', 'servidor-local.mjs'), String(PUERTO)], { stdio: 'ignore' });
 const perfil = mkdtempSync(join(tmpdir(), 'surco-prueba-'));
-const ejecutable = NAVEGADORES.find(existsSync);
+const ejecutable = NAVEGADORES.find((ruta) => ruta && existsSync(ruta));
 if (!ejecutable) { console.error('No se encontró Edge ni Chrome'); process.exit(1); }
 const PUERTO_DEBUG = 9300 + Math.floor(Math.random() * 600); // puerto distinto en cada corrida
 const navegador = spawn(ejecutable, [
   '--headless=new', `--remote-debugging-port=${PUERTO_DEBUG}`, `--user-data-dir=${perfil}`,
   '--no-first-run', '--no-default-browser-check', '--disable-extensions',
   '--use-fake-device-for-media-stream', // cámara simulada (patrón de prueba) para probar la Web API de cámara
+  // En los servidores Linux de CI el sandbox de Chrome no está disponible.
+  ...(process.env.CI ? ['--no-sandbox', '--disable-dev-shm-usage'] : []),
   'about:blank',
 ], { stdio: 'ignore' });
 
@@ -148,6 +152,22 @@ try {
   ok('Responsivo: sin desborde horizontal a 320, 375 y 768 px (5 vistas)', desbordes.length === 0, desbordes.join(' | ') || '15 combinaciones revisadas');
   await ir('#/mapa', 375, 812, true); await captura('movil-375-mapa.png');
 
+  // Insignia de Netlify simulada (iframe fijo 197×64 abajo a la derecha): no debe tapar el menú
+  const tapados = await evaluar(`(async () => {
+    const f = Object.assign(document.createElement('iframe'), { id: 'nl-badge-frame' });
+    f.style.cssText = 'position:fixed;bottom:0;right:0;width:197px;height:64px;border:0;z-index:2147483645';
+    document.body.append(f);
+    await new Promise(r => setTimeout(r, 300));
+    const ins = f.getBoundingClientRect();
+    const res = [...document.querySelectorAll('.navegacion a')].filter(a => {
+      const b = a.getBoundingClientRect();
+      return b.right > ins.left && b.left < ins.right && b.bottom > ins.top && b.top < ins.bottom;
+    }).map(a => a.textContent.trim());
+    f.remove();
+    return res;
+  })()`);
+  ok('Menú móvil no queda debajo de la insignia de Netlify', tapados.length === 0, tapados.length ? `tapados: ${tapados.join(', ')}` : 'ningún botón tapado');
+
   // Modo oscuro (E1P-07): se elige desde Ajustes y se guarda en localStorage + IndexedDB
   await evaluar("import('/js/tema.js').then(m => m.cambiarTema('oscuro'))");
   await ir('#/mapa', 1280, 800); await captura('escritorio-mapa-oscuro.png');
@@ -203,6 +223,10 @@ try {
   ok('Sin servidor: se guarda una actividad en IndexedDB', guardado.despues === guardado.antes + 1, JSON.stringify(guardado));
   await captura('escritorio-offline-actividades.png');
   ok('Sin servidor: la actividad aparece en la lista', await evaluar("document.body.innerText.includes('Prueba automática sin conexión')"));
+
+  // Scripts inyectados por Netlify: sin conexión el SW responde vacío (sin error en consola)
+  const netlifyOffline = await evaluar("fetch('/.netlify/scripts/hud?variant=public').then(r => r.status)").catch((e) => e.message);
+  ok('Sin servidor: script de Netlify responde sin error', netlifyOffline === 200, `estado ${netlifyOffline}`);
 
   // 6) Navegar a una página no guardada sin servidor → offline.html (no el dinosaurio del navegador)
   await cdp('Page.navigate', { url: `${URL_APP}pagina-no-guardada` });

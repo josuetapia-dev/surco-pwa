@@ -1,5 +1,7 @@
 # 🌱 Surco — Mapa de campo (PWA)
 
+[![CI](https://github.com/josuetapia-dev/surco-pwa/actions/workflows/ci.yml/badge.svg)](https://github.com/josuetapia-dev/surco-pwa/actions/workflows/ci.yml)
+
 Aplicación Web Progresiva para llevar el **mapa electrónico de una finca**: el estado de cada planta (como el semáforo de un mapa en papel), las actividades por surco con **foto y GPS**, y un calendario que **avisa lo que tocaba hacer y no se hizo**. Funciona **sin conexión**.
 
 > 🔗 **Producción:** `https://PENDIENTE.netlify.app` *(sustituir por la URL real)*
@@ -166,6 +168,17 @@ Abre Microsoft Edge (o Chrome) sin ventana y comprueba 18 puntos:
 
 También regenera las capturas de `screenshots/`. Para regenerar los íconos: `node tools/generar-iconos.mjs`.
 
+Revisión rápida sin navegador (archivos del precache, manifest e íconos): `node tools/verificar-shell.mjs`.
+
+### Integración continua y Pull Requests
+
+Cada push a `main` y cada Pull Request ejecutan en **GitHub Actions** (`.github/workflows/ci.yml`):
+1. la revisión de sintaxis,
+2. `verificar-shell.mjs`,
+3. todas las pruebas de `probar-pwa.mjs` en Chrome.
+
+El equipo trabaja con **una rama por tarjeta de Trello → Pull Request con plantilla → CI en verde → revisión de otro integrante → merge**. Netlify publica una vista previa de cada PR. Detalle: [docs/flujo-pull-requests.md](docs/flujo-pull-requests.md).
+
 ## 9. Despliegue (HTTPS)
 
 **Netlify:** *Add new site › Import from Git* › elegir el repo. No hay build y el directorio de publicación es la raíz (ya configurado en `netlify.toml`). Cada push a `main` despliega solo.
@@ -194,5 +207,5 @@ También regenera las capturas de `screenshots/`. Para regenerar los íconos: `n
 | 5. IndexedDB | 5 stores con índices. Guardado y consulta offline, incluidas las fotos. |
 | 6. Web APIs nativas | Cámara, geolocalización y notificaciones, con manejo de permisos. |
 | 7. Producción HTTPS | Netlify/Vercel (ver URL arriba). |
-| 8. Git | Repositorio público con el historial de commits (pestaña *Commits*). |
+| 8. Git | Repositorio público con historial de commits por módulo, Pull Requests revisados y CI en GitHub Actions. |
 | 9. README | Este documento. |
