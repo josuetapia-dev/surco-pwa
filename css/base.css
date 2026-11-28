@@ -163,6 +163,18 @@ main {
   outline: none;
 }
 
+/* Insignia "Powered by Netlify" (plan gratuito, 64 px de alto, fija abajo):
+   en celular el menú inferior crece hacia arriba para no quedar debajo de ella. */
+@media (max-width: 1023px) {
+  body.con-insignia { --alto-insignia: 64px; }
+  body.con-insignia .navegacion {
+    height: calc(var(--alto-nav) + var(--alto-insignia) + env(safe-area-inset-bottom));
+    padding-bottom: calc(var(--alto-insignia) + env(safe-area-inset-bottom));
+  }
+  body.con-insignia main { padding-bottom: calc(var(--alto-nav) + var(--alto-insignia) + env(safe-area-inset-bottom) + 1.5rem); }
+  body.con-insignia .toasts { bottom: calc(var(--alto-nav) + var(--alto-insignia) + env(safe-area-inset-bottom) + .75rem); }
+}
+
 @media (min-width: 1024px) {
   .shell {
     grid-template-columns: var(--ancho-sidebar) minmax(0, 1fr);

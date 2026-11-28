@@ -13,7 +13,7 @@
 // queda "en espera" y la app muestra el botón "Actualizar" (SKIP_WAITING).
 // =============================================================
 
-const VERSION = 'v1.1.2'; // v1.1.2: corrige desborde horizontal en celulares (grid minmax)
+const VERSION = 'v1.1.3'; // v1.1.3: menú móvil no queda bajo la insignia de Netlify; script de Netlify sin error offline
 const CACHE_SHELL = `surco-shell-${VERSION}`;
 const CACHE_RUNTIME = `surco-runtime-${VERSION}`;
 const CACHE_API = 'surco-api'; // los datos dinámicos sobreviven entre versiones
@@ -93,6 +93,15 @@ self.addEventListener('fetch', (event) => {
 
   // Solo manejamos recursos de nuestro propio origen.
   if (url.origin !== self.location.origin) return;
+
+  // Scripts que inyecta Netlify (/.netlify/...): solo red; sin conexión se responde
+  // un script vacío para que no quede un error en la consola.
+  if (url.pathname.startsWith('/.netlify/')) {
+    event.respondWith(fetch(request).catch(() => new Response('', {
+      status: 200, headers: { 'Content-Type': 'text/javascript' },
+    })));
+    return;
+  }
 
   // 2) Navegación: siempre se entrega el App Shell (la app usa rutas con #)
   if (request.mode === 'navigate') {

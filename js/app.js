@@ -165,6 +165,15 @@ async function avisoDiario(r) {
 
 window.addEventListener('datos-cambiaron', actualizarContador);
 
+// ---------------- Insignia de Netlify (plan gratuito) ----------------
+// Netlify inyecta un botón "Powered by Netlify" fijo abajo a la derecha (#nl-badge-frame).
+// No lo ocultamos: subimos el menú inferior del celular para que ambos se vean y se puedan tocar.
+function vigilarInsigniaNetlify() {
+  const revisar = () => document.body.classList.toggle('con-insignia', !!document.getElementById('nl-badge-frame'));
+  revisar();
+  new MutationObserver(revisar).observe(document.body, { childList: true });
+}
+
 // ---------------- Tema claro / oscuro ----------------
 
 document.getElementById('btn-tema').addEventListener('click', async () => {
@@ -177,6 +186,7 @@ document.getElementById('btn-tema').addEventListener('click', async () => {
 
 async function iniciar() {
   pintarTema();
+  vigilarInsigniaNetlify();
   registrarServiceWorker();
   actualizarEstadoRed();
   try {
